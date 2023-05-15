@@ -2,7 +2,7 @@ import './App.css';
 
 import { useEffect } from 'react';
 import { FaceLandmarker, FaceLandmarkerOptions, FilesetResolver } from "@mediapipe/tasks-vision";
-import { AnimationMixer, Euler, Matrix4 } from 'three';
+import { AnimationMixer, Color, Euler, Matrix4 } from 'three';
 import { Canvas, useFrame, useGraph } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 
@@ -25,7 +25,7 @@ const options: FaceLandmarkerOptions = {
 };
 
 function Avatar() {
-  const avatar = useGLTF("https://models.readyplayer.me/6407b039ea361a4a822bc531.glb?morphTargets=ARKit&textureAtlas=1024");
+  const avatar = useGLTF("https://models.readyplayer.me/6460d95f9ae10f45bffb2864.glb?morphTargets=ARKit&textureAtlas=1024");
   const anim = useGLTF("./male-idle.glb");
   const { nodes } = useGraph(avatar.scene);
 
@@ -47,7 +47,8 @@ function Avatar() {
         }
       });
 
-      nodes.Neck.rotation.set(rotation.x + 0.5, rotation.y, rotation.z);
+      nodes.Head.rotation.set(rotation.x, rotation.y, rotation.z);
+      nodes.Neck.rotation.set(rotation.x / 5 + 0.3, rotation.y / 5, rotation.z / 5);
       nodes.Spine2.rotation.set(rotation.x / 10, rotation.y / 10, rotation.z / 10);
     }
   });
@@ -93,12 +94,15 @@ function App() {
 
   return (
     <div className="App">
-      <video id="video" width="640" height="300" autoPlay></video>
-      <Canvas style={{ height: 600 }} camera={{ fov: 25 }}>
-        <ambientLight />
-        <pointLight position={[10, 10, 10]} />
+      <video className='camera-feed' id="video" autoPlay></video>
+      <Canvas style={{ height: 600 }} camera={{ fov: 25 }} shadows>
+        <ambientLight intensity={0.5} />
+        <pointLight position={[10, 10, 10]} color={new Color(1, 1, 0)} intensity={0.5} castShadow />
+        <pointLight position={[-10, 0, 10]} color={new Color(1, 0, 0)} intensity={0.5} castShadow />
+        <pointLight position={[0, 0, 10]} intensity={0.5} castShadow />
         <Avatar />
       </Canvas>
+      <img className='logo' src="./logo.png" />
     </div>
   );
 }
