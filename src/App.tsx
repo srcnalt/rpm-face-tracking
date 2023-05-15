@@ -1,10 +1,11 @@
 import './App.css';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { FaceLandmarker, FaceLandmarkerOptions, FilesetResolver } from "@mediapipe/tasks-vision";
 import { AnimationMixer, Color, Euler, Matrix4 } from 'three';
 import { Canvas, useFrame, useGraph } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
+import Dropzone from 'react-dropzone';
 
 let video: HTMLVideoElement;
 let faceLandmarker: FaceLandmarker;
@@ -24,8 +25,8 @@ const options: FaceLandmarkerOptions = {
   outputFacialTransformationMatrixes: true,
 };
 
-function Avatar() {
-  const avatar = useGLTF("https://models.readyplayer.me/6460d95f9ae10f45bffb2864.glb?morphTargets=ARKit&textureAtlas=1024");
+function Avatar({ url }: { url: string }) {
+  const avatar = useGLTF(url);
   const anim = useGLTF("./male-idle.glb");
   const { nodes } = useGraph(avatar.scene);
 
@@ -34,7 +35,7 @@ function Avatar() {
 
   useEffect(() => {
     headMesh = (nodes.Wolf3D_Head || nodes.Wolf3D_Avatar);
-  }, [nodes]);
+  }, [nodes, url]);
 
   useFrame((_, delta) => {
     if (headMesh?.morphTargetInfluences && blendshapes.length > 0) {
@@ -53,10 +54,12 @@ function Avatar() {
     }
   });
 
-  return <primitive object={avatar.scene} position={[0, -1.6, 4]} />
+  return <primitive object={avatar.scene} position={[0, -1.65, 4]} />
 }
 
 function App() {
+  const [url, setUrl] = useState<string>("https://models.readyplayer.me/6460d95f9ae10f45bffb2864.glb?morphTargets=ARKit&textureAtlas=1024");
+
   const setup = async () => {
     const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
     faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, options);
@@ -88,19 +91,33 @@ function App() {
     window.requestAnimationFrame(predict);
   }
 
+  const handleOnDrop = (files: any) => {
+    const file = files[0];
+    const url = URL.createObjectURL(file);
+    setUrl(url);
+  }
+
   useEffect(() => {
     setup();
   }, []);
 
   return (
     <div className="App">
+      <Dropzone multiple={false} onDrop={handleOnDrop}>
+        {({ getRootProps, getInputProps }) => (
+          <div {...getRootProps()} className="dropzone">
+            <input {...getInputProps()} />
+            Drag and drop fbx/glb/gltf/jpg/png files here.
+          </div>
+        )}
+      </Dropzone>
       <video className='camera-feed' id="video" autoPlay></video>
       <Canvas style={{ height: 600 }} camera={{ fov: 25 }} shadows>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} color={new Color(1, 1, 0)} intensity={0.5} castShadow />
         <pointLight position={[-10, 0, 10]} color={new Color(1, 0, 0)} intensity={0.5} castShadow />
         <pointLight position={[0, 0, 10]} intensity={0.5} castShadow />
-        <Avatar />
+        <Avatar url={url} />
       </Canvas>
       <img className='logo' src="./logo.png" />
     </div>

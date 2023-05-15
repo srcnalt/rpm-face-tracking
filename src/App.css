@@ -1,9 +1,9 @@
 .App {
   text-align: center;
-  height: 800px;
+  height: 768px;
   width: 500px;
   margin: 0 auto;
-  margin-top: 48px;
+  margin-top: 16px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -27,4 +27,17 @@
   width: 128px;
   bottom: 16px;
   left: 16px;
+}
+
+.dropzone {
+  margin: 16px;
+  margin-bottom: 0px;
+  border-radius: 16px;
+  width: 468px;
+  height: 64px;
+  border: 2px dashed #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: aliceblue;
 }
