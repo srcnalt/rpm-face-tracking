@@ -2,10 +2,9 @@ import './App.css';
 
 import { useEffect, useState } from 'react';
 import { FaceLandmarker, FaceLandmarkerOptions, FilesetResolver } from "@mediapipe/tasks-vision";
-import { AnimationMixer, Color, Euler, Matrix4 } from 'three';
+import { Color, Euler, Matrix4 } from 'three';
 import { Canvas, useFrame, useGraph } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import Dropzone from 'react-dropzone';
 
 let video: HTMLVideoElement;
 let faceLandmarker: FaceLandmarker;
@@ -26,12 +25,9 @@ const options: FaceLandmarkerOptions = {
 };
 
 function Avatar({ url }: { url: string }) {
-  const avatar = useGLTF(url);
-  const anim = useGLTF("./male-idle.glb");
-  const { nodes } = useGraph(avatar.scene);
+  const { scene } = useGLTF(`${url}?morphTargets=ARKit&textureAtlas=1024`);
+  const { nodes } = useGraph(scene);
 
-  const mixer = new AnimationMixer(avatar.scene);
-  mixer.clipAction(anim.animations[0]).play();
 
   useEffect(() => {
     headMesh = (nodes.Wolf3D_Head || nodes.Wolf3D_Avatar);
@@ -39,7 +35,6 @@ function Avatar({ url }: { url: string }) {
 
   useFrame((_, delta) => {
     if (headMesh?.morphTargetInfluences && blendshapes.length > 0) {
-      mixer.update(delta / 2);
 
       blendshapes.forEach(element => {
         let index = headMesh.morphTargetDictionary[element.categoryName];
@@ -54,7 +49,7 @@ function Avatar({ url }: { url: string }) {
     }
   });
 
-  return <primitive object={avatar.scene} position={[0, -1.65, 4]} />
+  return <primitive object={scene} position={[0, -1.65, 4]} />
 }
 
 function App() {
@@ -91,10 +86,8 @@ function App() {
     window.requestAnimationFrame(predict);
   }
 
-  const handleOnDrop = (files: any) => {
-    const file = files[0];
-    const url = URL.createObjectURL(file);
-    setUrl(url);
+  const handleOnChange = (event: any) => {
+    setUrl(event.target.value);
   }
 
   useEffect(() => {
@@ -103,14 +96,7 @@ function App() {
 
   return (
     <div className="App">
-      <Dropzone multiple={false} onDrop={handleOnDrop}>
-        {({ getRootProps, getInputProps }) => (
-          <div {...getRootProps()} className="dropzone">
-            <input {...getInputProps()} />
-            Drag and drop fbx/glb/gltf/jpg/png files here.
-          </div>
-        )}
-      </Dropzone>
+      <input className='url' type="text" placeholder="Paste RPM avatar URL" onChange={handleOnChange} />
       <video className='camera-feed' id="video" autoPlay></video>
       <Canvas style={{ height: 600 }} camera={{ fov: 25 }} shadows>
         <ambientLight intensity={0.5} />

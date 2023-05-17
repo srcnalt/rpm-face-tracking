@@ -29,12 +29,13 @@
   left: 16px;
 }
 
-.dropzone {
+.url {
   margin: 16px;
   margin-bottom: 0px;
   border-radius: 16px;
-  width: 468px;
-  height: 64px;
+  padding: 0 16px;
+  width: 436px;
+  height: 32px;
   border: 2px dashed #ccc;
   display: flex;
   justify-content: center;
