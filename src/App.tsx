@@ -1,20 +1,21 @@
 import './App.css';
 
-import { useEffect, useState } from 'react';
-import { FaceLandmarker, FaceLandmarkerOptions, FilesetResolver } from "@mediapipe/tasks-vision";
-import { Color, Euler, Matrix4 } from 'three';
+import { useEffect, useRef, useState } from 'react';
+import { FilesetResolver, FaceLandmarker, PoseLandmarker, FaceLandmarkerOptions, PoseLandmarkerOptions } from "@mediapipe/tasks-vision";
+import { Color, Euler, Mesh, Vector3 } from 'three';
 import { Canvas, useFrame, useGraph } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { useDropzone } from 'react-dropzone';
 
 let video: HTMLVideoElement;
 let faceLandmarker: FaceLandmarker;
+let poseLandmarker: PoseLandmarker;
 let lastVideoTime = -1;
 let blendshapes: any[] = [];
 let rotation: Euler;
 let headMesh: any[] = [];
 
-const options: FaceLandmarkerOptions = {
+const faceOptions: FaceLandmarkerOptions = {
   baseOptions: {
     modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
     delegate: "GPU"
@@ -23,6 +24,15 @@ const options: FaceLandmarkerOptions = {
   runningMode: "VIDEO",
   outputFaceBlendshapes: true,
   outputFacialTransformationMatrixes: true,
+};
+
+const poseOptions: PoseLandmarkerOptions = {
+  baseOptions: {
+    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task`,
+    delegate: "GPU"
+  },
+  runningMode: "VIDEO",
+  numPoses: 1
 };
 
 function Avatar({ url }: { url: string }) {
@@ -72,7 +82,8 @@ function App() {
 
   const setup = async () => {
     const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
-    faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, options);
+    // faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, faceOptions);
+    poseLandmarker = await PoseLandmarker.createFromOptions(filesetResolver, poseOptions);
 
     video = document.getElementById("video") as HTMLVideoElement;
     navigator.mediaDevices.getUserMedia({
@@ -85,17 +96,27 @@ function App() {
   }
 
   const predict = async () => {
-    let nowInMs = Date.now();
+    let nowInMs = performance.now();
     if (lastVideoTime !== video.currentTime) {
       lastVideoTime = video.currentTime;
-      const faceLandmarkerResult = faceLandmarker.detectForVideo(video, nowInMs);
+      // const faceLandmarkerResult = faceLandmarker.detectForVideo(video, nowInMs);
+      poseLandmarker.detectForVideo(video, nowInMs, (result) => {
+        for (const landmark of result.landmarks) {
+          if (meshRef.current) {
+            meshRef.current.position.set(landmark[15].x, -landmark[15].y, landmark[15].z);
+            console.log(meshRef.current.position);
+          }
+        }
+      });
 
+      /*
       if (faceLandmarkerResult.faceBlendshapes && faceLandmarkerResult.faceBlendshapes.length > 0 && faceLandmarkerResult.faceBlendshapes[0].categories) {
         blendshapes = faceLandmarkerResult.faceBlendshapes[0].categories;
 
         const matrix = new Matrix4().fromArray(faceLandmarkerResult.facialTransformationMatrixes![0].data);
         rotation = new Euler().setFromRotationMatrix(matrix);
       }
+      */
     }
 
     window.requestAnimationFrame(predict);
@@ -108,6 +129,8 @@ function App() {
   useEffect(() => {
     setup();
   }, []);
+
+  let meshRef = useRef<any>();
 
   return (
     <div className="App">
@@ -122,6 +145,10 @@ function App() {
         <pointLight position={[-10, 0, 10]} color={new Color(1, 0, 0)} intensity={0.5} castShadow />
         <pointLight position={[0, 0, 10]} intensity={0.5} castShadow />
         <Avatar url={url} />
+        <mesh ref={meshRef}>
+          <sphereGeometry args={[0.5, 32, 32]} />
+          <meshStandardMaterial color={new Color(0.5, 0.5, 0.5)} />
+        </mesh>
       </Canvas>
       <img className='logo' src="./logo.png" />
     </div>
