@@ -1,28 +1,29 @@
 import './App.css';
 
 import { useEffect, useState } from 'react';
-import { FaceLandmarker, FaceLandmarkerOptions, FilesetResolver } from "@mediapipe/tasks-vision";
+import { FaceLandmarker, FaceLandmarkerOptions, FilesetResolver, HandLandmarker, HandLandmarkerOptions } from "@mediapipe/tasks-vision";
 import { Color, Euler, Matrix4 } from 'three';
 import { Canvas, useFrame, useGraph } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { useDropzone } from 'react-dropzone';
 
 let video: HTMLVideoElement;
-let faceLandmarker: FaceLandmarker;
+let handLandmarker: HandLandmarker;
+let enableWebcamButton: HTMLButtonElement;
+let webcamRunning: Boolean = false;
+
 let lastVideoTime = -1;
 let blendshapes: any[] = [];
 let rotation: Euler;
 let headMesh: any[] = [];
 
-const options: FaceLandmarkerOptions = {
+const options: HandLandmarkerOptions = {
   baseOptions: {
-    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
     delegate: "GPU"
   },
-  numFaces: 1,
-  runningMode: "VIDEO",
-  outputFaceBlendshapes: true,
-  outputFacialTransformationMatrixes: true,
+  numHands: 2,
+  runningMode: "VIDEO"
 };
 
 function Avatar({ url }: { url: string }) {
@@ -71,8 +72,8 @@ function App() {
   });
 
   const setup = async () => {
-    const filesetResolver = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
-    faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, options);
+    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
+    handLandmarker = await HandLandmarker.createFromOptions(vision, options);
 
     video = document.getElementById("video") as HTMLVideoElement;
     navigator.mediaDevices.getUserMedia({
@@ -88,14 +89,17 @@ function App() {
     let nowInMs = Date.now();
     if (lastVideoTime !== video.currentTime) {
       lastVideoTime = video.currentTime;
-      const faceLandmarkerResult = faceLandmarker.detectForVideo(video, nowInMs);
+      const faceLandmarkerResult = handLandmarker.detectForVideo(video, nowInMs);
 
-      if (faceLandmarkerResult.faceBlendshapes && faceLandmarkerResult.faceBlendshapes.length > 0 && faceLandmarkerResult.faceBlendshapes[0].categories) {
-        blendshapes = faceLandmarkerResult.faceBlendshapes[0].categories;
+      console.log(faceLandmarkerResult);
 
-        const matrix = new Matrix4().fromArray(faceLandmarkerResult.facialTransformationMatrixes![0].data);
-        rotation = new Euler().setFromRotationMatrix(matrix);
-      }
+
+      // if (faceLandmarkerResult.faceBlendshapes && faceLandmarkerResult.faceBlendshapes.length > 0 && faceLandmarkerResult.faceBlendshapes[0].categories) {
+      //   blendshapes = faceLandmarkerResult.faceBlendshapes[0].categories;
+
+      //   const matrix = new Matrix4().fromArray(faceLandmarkerResult.facialTransformationMatrixes![0].data);
+      //   rotation = new Euler().setFromRotationMatrix(matrix);
+      // }
     }
 
     window.requestAnimationFrame(predict);
@@ -116,13 +120,13 @@ function App() {
       </div>
       <input className='url' type="text" placeholder="Paste RPM avatar URL" onChange={handleOnChange} />
       <video className='camera-feed mirror-scene' id="video" autoPlay></video>
-      <Canvas className='mirror-scene' style={{ height: 600 }} camera={{ fov: 25 }} shadows>
+      {/* <Canvas className='mirror-scene' style={{ height: 600 }} camera={{ fov: 25 }} shadows>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} color={new Color(1, 1, 0)} intensity={0.5} castShadow />
         <pointLight position={[-10, 0, 10]} color={new Color(1, 0, 0)} intensity={0.5} castShadow />
         <pointLight position={[0, 0, 10]} intensity={0.5} castShadow />
         <Avatar url={url} />
-      </Canvas>
+      </Canvas> */}
       <img className='logo' src="./logo.png" />
     </div>
   );
