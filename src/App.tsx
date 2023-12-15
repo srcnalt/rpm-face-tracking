@@ -115,8 +115,8 @@ function App() {
         <p>Drag & drop RPM avatar GLB file here</p>
       </div>
       <input className='url' type="text" placeholder="Paste RPM avatar URL" onChange={handleOnChange} />
-      <video className='camera-feed' id="video" autoPlay></video>
-      <Canvas style={{ height: 600 }} camera={{ fov: 25 }} shadows>
+      <video className='camera-feed mirror-scene' id="video" autoPlay></video>
+      <Canvas className='mirror-scene' style={{ height: 600 }} camera={{ fov: 25 }} shadows>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} color={new Color(1, 1, 0)} intensity={0.5} castShadow />
         <pointLight position={[-10, 0, 10]} color={new Color(1, 0, 0)} intensity={0.5} castShadow />

@@ -22,6 +22,11 @@
   height: 300px;
 }
 
+.mirror-scene {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
 .logo {
   position: absolute;
   width: 128px;
