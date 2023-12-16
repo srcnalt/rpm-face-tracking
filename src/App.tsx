@@ -6,11 +6,15 @@ import { Color, Euler, Matrix4 } from 'three';
 import { Canvas, useFrame, useGraph } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { useDropzone } from 'react-dropzone';
+import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
+import { HAND_CONNECTIONS } from '@mediapipe/hands';
 
 let video: HTMLVideoElement;
 let handLandmarker: HandLandmarker;
 let enableWebcamButton: HTMLButtonElement;
 let webcamRunning: Boolean = false;
+let canvasElement: HTMLCanvasElement;
+let canvasCtx: CanvasRenderingContext2D;
 
 
 let lastVideoTime = -1;
@@ -23,7 +27,7 @@ const options: HandLandmarkerOptions = {
     modelAssetPath: `/models/hand_landmarker.task`,
     delegate: "GPU"
   },
-  numHands: 2,
+  numHands: 1,
   runningMode: "VIDEO"
 };
 
@@ -123,13 +127,44 @@ function App() {
   }
 
   const predict = async () => {
+
+    canvasElement = document.getElementById(
+      "output_canvas"
+    ) as HTMLCanvasElement;
+    canvasCtx = canvasElement.getContext("2d") as CanvasRenderingContext2D;
+    // canvasElement.style.width = video.videoWidth.toString();
+    // canvasElement.style.height = video.videoHeight.toString();
+    // canvasElement.width = video.videoWidth;
+    // canvasElement.height = video.videoHeight;
+
     let nowInMs = Date.now();
-    if (lastVideoTime !== video.currentTime) {
+    if (lastVideoTime !== video.currentTime && webcamRunning) {
       lastVideoTime = video.currentTime;
       const handLandmarkerResult = handLandmarker.detectForVideo(video, nowInMs);
 
-      console.log(handLandmarkerResult);
+      console.log(handLandmarkerResult?.landmarks["0"] && handLandmarkerResult?.landmarks["0"][0]?.x);
 
+      if (handLandmarkerResult?.landmarks["0"]) {
+        // is the hand right
+        if (handLandmarkerResult.landmarks["0"][9].x < 0.5) {
+          console.log("right");
+        }
+      }
+
+
+
+      canvasCtx?.save();
+      canvasCtx?.clearRect(0, 0, canvasElement.width, canvasElement.height);
+      if (handLandmarkerResult?.landmarks) {
+        for (const landmarks of handLandmarkerResult.landmarks) {
+          drawConnectors(canvasCtx!, landmarks, HAND_CONNECTIONS, {
+            color: "#00FF00",
+            lineWidth: 5
+          });
+          drawLandmarks(canvasCtx!, landmarks, { color: "#FF0000", radius: 1 });
+        }
+      }
+      canvasCtx?.restore();
 
       // if (faceLandmarkerResult.faceBlendshapes && faceLandmarkerResult.faceBlendshapes.length > 0 && faceLandmarkerResult.faceBlendshapes[0].categories) {
       //   blendshapes = faceLandmarkerResult.faceBlendshapes[0].categories;
@@ -138,6 +173,7 @@ function App() {
       //   rotation = new Euler().setFromRotationMatrix(matrix);
       // }
     }
+
     if (webcamRunning === true)
       window.requestAnimationFrame(predict);
   }
@@ -161,6 +197,8 @@ function App() {
         <span className="mdc-button__label">ENABLE WEBCAM</span>
       </button>
       <video className='camera-feed mirror-scene' id="video" autoPlay></video>
+      <canvas className="output_canvas camera-feed mirror-scene" id="output_canvas" style={{ height: 600 }}>
+      </canvas>
       {/* <Canvas className='mirror-scene' style={{ height: 600 }} camera={{ fov: 25 }} shadows>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} color={new Color(1, 1, 0)} intensity={0.5} castShadow />
