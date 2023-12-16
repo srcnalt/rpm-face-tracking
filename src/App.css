@@ -15,11 +15,21 @@
   background: linear-gradient(45deg, #69ebca, #7a42af);
 }
 
+.camera-feed-container {
+  position: relative;
+}
+
 .camera-feed {
   margin: 16px;
   border-radius: 16px;
   width: 468px;
   height: 300px;
+}
+
+.output_canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .mirror-scene {
@@ -60,5 +70,21 @@
   justify-content: center;
   align-items: center;
   background-color: aliceblue;
+  cursor: pointer;
+}
+
+.button {
+  margin-top: 3rem;
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  background: linear-gradient(45deg, #f3ec78, #af4261);
+  color: #38214d;
+  border: none;
+  transition: background-color 0.3s ease;
   cursor: pointer;
 }
