@@ -9,6 +9,12 @@ const useHandDetection = () => {
     const webcamButtonRef = useRef<HTMLButtonElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const handLandmarkerRef = useRef<HandLandmarker | null>(null);
+    // Use a ref to track whether handLandmarker has been created
+    const handLandmarkerCreated = useRef(false);
+    // check if landmarker loaded
+    const [landmarkerLoaded, setLandmarkerLoaded] = useState(false);
+    const [webcamRunning, setWebcamRunning] = useState(false);
+
 
     const options: HandLandmarkerOptions = {
         baseOptions: {
@@ -19,17 +25,13 @@ const useHandDetection = () => {
         runningMode: "VIDEO"
     };
 
-
-
-    // Use a ref to track whether handLandmarker has been created
-    const handLandmarkerCreated = useRef(false);
-
     // Create or retrieve handLandmarker
     const createHandLandmarker = async () => {
         if (!handLandmarkerCreated.current) {
             const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm");
             handLandmarkerRef.current = await HandLandmarker.createFromOptions(vision, options);
             handLandmarkerCreated.current = true;
+            setLandmarkerLoaded(true);
         }
     };
 
@@ -40,7 +42,6 @@ const useHandDetection = () => {
 
     useEffect(() => {
         let lastVideoTime = -1;
-        let webcamRunning = false;
         const webcamButton = webcamButtonRef.current
 
         // createHandLandmarker()
@@ -50,6 +51,7 @@ const useHandDetection = () => {
             if (lastVideoTime !== videoRef.current?.currentTime && webcamRunning) {
                 lastVideoTime = videoRef.current?.currentTime || 0;
                 const handLandmarkerResult = handLandmarkerRef.current?.detectForVideo(videoRef.current!, nowInMs);
+                console.log(handLandmarkerResult);
 
                 if (handLandmarkerResult) {
                     draw(handLandmarkerResult?.landmarks);
@@ -71,9 +73,25 @@ const useHandDetection = () => {
             }
 
             if (webcamRunning === true) {
-                webcamRunning = false;
+                setWebcamRunning(false)
+                const video = videoRef.current;
+                if (video && video.srcObject) {
+                    const stream = video.srcObject as MediaStream;
+                    const tracks = stream.getTracks();
+                    tracks.forEach((track) => track.stop());
+                    video.srcObject = null;
+                }
+                // Clear the canvas when the camera stops
+                const canvas = canvasRef.current;
+                const canvasCtx = canvas?.getContext("2d");
+                if (canvasCtx) {
+                    canvasCtx.clearRect(0, 0, canvas!.width, canvas!.height);
+                }
+                webcamButton!.innerText = "ENABLE WEBCAM";
+                return
             } else {
-                webcamRunning = true;
+                setWebcamRunning(true)
+                webcamButton!.innerText = "DISABLE WEBCAM";
             }
 
             const video = videoRef.current;
@@ -145,7 +163,7 @@ const useHandDetection = () => {
         return ""; // Handle the case where landmarks are not available
     };
 
-    return { direction, videoRef, webcamButtonRef, canvasRef };
+    return { landmarkerLoaded, webcamRunning, direction, videoRef, webcamButtonRef, canvasRef };
 };
 
 export default useHandDetection;

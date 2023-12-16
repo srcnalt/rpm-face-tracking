@@ -4,15 +4,15 @@ import useHandDetection from './hooks/useHandDetection';
 
 function App() {
 
-  const { direction, videoRef, webcamButtonRef, canvasRef } = useHandDetection()
+  const { landmarkerLoaded, webcamRunning, direction, videoRef, webcamButtonRef, canvasRef } = useHandDetection()
 
   return (
     <div className="App">
       <button ref={webcamButtonRef} id="webcamButton" className="mdc-button mdc-button--raised button">
-        <span className="mdc-button__ripple"></span>
-        <span className="mdc-button__label">ENABLE WEBCAM</span>
+        {/* <span className="mdc-button__ripple"></span> */}
+        <span className="mdc-button__label">{landmarkerLoaded ? "ENABLE WEBCAM" : "Loading..."}</span>
       </button>
-      <p>Direction: {direction != "" ? direction : "Unknown"}</p>
+      {webcamRunning && <p>Direction: {direction != "" ? direction : "Unknown"}</p>}
       <div className="camera-feed-container">
         <video ref={videoRef} className='camera-feed mirror-scene' id="video" autoPlay></video>
         <canvas ref={canvasRef} className="camera-feed mirror-scene output_canvas" id="output_canvas" />
