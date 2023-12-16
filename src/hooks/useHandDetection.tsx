@@ -43,15 +43,17 @@ const useHandDetection = () => {
     useEffect(() => {
         let lastVideoTime = -1;
         const webcamButton = webcamButtonRef.current
+        let webcamRunning = false
 
         // createHandLandmarker()
 
         const detect = async () => {
             let nowInMs = Date.now();
+            console.log(webcamRunning);
+
             if (lastVideoTime !== videoRef.current?.currentTime && webcamRunning) {
                 lastVideoTime = videoRef.current?.currentTime || 0;
                 const handLandmarkerResult = handLandmarkerRef.current?.detectForVideo(videoRef.current!, nowInMs);
-                console.log(handLandmarkerResult);
 
                 if (handLandmarkerResult) {
                     draw(handLandmarkerResult?.landmarks);
@@ -73,6 +75,7 @@ const useHandDetection = () => {
             }
 
             if (webcamRunning === true) {
+                webcamRunning = false;
                 setWebcamRunning(false)
                 const video = videoRef.current;
                 if (video && video.srcObject) {
@@ -90,6 +93,7 @@ const useHandDetection = () => {
                 webcamButton!.innerText = "ENABLE WEBCAM";
                 return
             } else {
+                webcamRunning = true
                 setWebcamRunning(true)
                 webcamButton!.innerText = "DISABLE WEBCAM";
             }
