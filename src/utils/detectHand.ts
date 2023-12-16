@@ -65,20 +65,16 @@ const enableCam = () => {
     // Activate the webcam stream.
     navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
         video.srcObject = stream;
-        video.addEventListener("loadeddata", predict);
+        video.addEventListener("loadeddata", detect);
     });
 }
 
-const predict = async () => {
+const detect = async () => {
 
     canvasElement = document.getElementById(
         "output_canvas"
     ) as HTMLCanvasElement;
     canvasCtx = canvasElement.getContext("2d") as CanvasRenderingContext2D;
-    // canvasElement.style.width = video.videoWidth.toString();
-    // canvasElement.style.height = video.videoHeight.toString();
-    // canvasElement.width = video.videoWidth;
-    // canvasElement.height = video.videoHeight;
 
     let nowInMs = Date.now();
     if (lastVideoTime !== video.currentTime && webcamRunning) {
@@ -91,6 +87,8 @@ const predict = async () => {
             // is the hand right
             if (handLandmarkerResult.landmarks["0"][9].x < 0.5) {
                 console.log("right");
+            } else {
+                console.log("left");
             }
         }
 
@@ -116,6 +114,6 @@ const predict = async () => {
     }
 
     if (webcamRunning === true)
-        window.requestAnimationFrame(predict);
+        window.requestAnimationFrame(detect);
 }
 
