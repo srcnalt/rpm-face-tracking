@@ -1,4 +1,4 @@
-import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
+import { NormalizedLandmarkList, drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import { HAND_CONNECTIONS } from "@mediapipe/hands";
 import { FilesetResolver, HandLandmarker, HandLandmarkerOptions } from "@mediapipe/tasks-vision";
 
@@ -71,49 +71,54 @@ const enableCam = () => {
 
 const detect = async () => {
 
-    canvasElement = document.getElementById(
-        "output_canvas"
-    ) as HTMLCanvasElement;
-    canvasCtx = canvasElement.getContext("2d") as CanvasRenderingContext2D;
-
+    let direction = ''
     let nowInMs = Date.now();
     if (lastVideoTime !== video.currentTime && webcamRunning) {
         lastVideoTime = video.currentTime;
         const handLandmarkerResult = handLandmarker.detectForVideo(video, nowInMs);
 
-        // console.log(handLandmarkerResult?.landmarks["0"] && handLandmarkerResult?.landmarks["0"][0]?.x);
+        draw(handLandmarkerResult?.landmarks);
 
-        if (handLandmarkerResult?.landmarks["0"]) {
-            // is the hand right
-            if (handLandmarkerResult.landmarks["0"][9].x < 0.5) {
-                console.log("right");
-            } else {
-                console.log("left");
-            }
-        }
-
-        canvasCtx?.save();
-        canvasCtx?.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        if (handLandmarkerResult?.landmarks) {
-            for (const landmarks of handLandmarkerResult.landmarks) {
-                drawConnectors(canvasCtx!, landmarks, HAND_CONNECTIONS, {
-                    color: "#7a42af",
-                    lineWidth: 2
-                });
-                drawLandmarks(canvasCtx!, landmarks, { color: "#69ebca", radius: 1 });
-            }
-        }
-        canvasCtx?.restore();
-
-        // if (faceLandmarkerResult.faceBlendshapes && faceLandmarkerResult.faceBlendshapes.length > 0 && faceLandmarkerResult.faceBlendshapes[0].categories) {
-        //   blendshapes = faceLandmarkerResult.faceBlendshapes[0].categories;
-
-        //   const matrix = new Matrix4().fromArray(faceLandmarkerResult.facialTransformationMatrixes![0].data);
-        //   rotation = new Euler().setFromRotationMatrix(matrix);
-        // }
+        direction = getDirection(handLandmarkerResult?.landmarks);
     }
-
-    if (webcamRunning === true)
+    if (webcamRunning)
         window.requestAnimationFrame(detect);
+
+    return direction
+}
+
+
+const draw = (landmarks: NormalizedLandmarkList[]) => {
+    canvasElement = document.getElementById(
+        "output_canvas"
+    ) as HTMLCanvasElement;
+    canvasCtx = canvasElement.getContext("2d") as CanvasRenderingContext2D;
+
+    canvasCtx?.save();
+    canvasCtx?.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+    if (landmarks) {
+        for (const landmark of landmarks) {
+            drawConnectors(canvasCtx!, landmark, HAND_CONNECTIONS, {
+                color: "#7a42af",
+                lineWidth: 2
+            });
+            drawLandmarks(canvasCtx!, landmark, { color: "#69ebca", radius: 1 });
+        }
+    }
+    canvasCtx?.restore();
+}
+
+
+const getDirection = (landmarks: NormalizedLandmarkList[]): string => {
+    if (landmarks && landmarks[0]) {
+        // is the hand right
+        if (landmarks[0][9].x < 0.5) {
+            return "right";
+        } else {
+            return "left";
+        }
+    }
+    return ""; // Handle the case where landmarks are not available
 }
 
