@@ -81,7 +81,7 @@ const detect = async () => {
         lastVideoTime = video.currentTime;
         const handLandmarkerResult = handLandmarker.detectForVideo(video, nowInMs);
 
-        console.log(handLandmarkerResult?.landmarks["0"] && handLandmarkerResult?.landmarks["0"][0]?.x);
+        // console.log(handLandmarkerResult?.landmarks["0"] && handLandmarkerResult?.landmarks["0"][0]?.x);
 
         if (handLandmarkerResult?.landmarks["0"]) {
             // is the hand right
