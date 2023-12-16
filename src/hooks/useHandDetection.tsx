@@ -49,7 +49,6 @@ const useHandDetection = () => {
 
         const detect = async () => {
             let nowInMs = Date.now();
-            console.log(webcamRunning);
 
             if (lastVideoTime !== videoRef.current?.currentTime && webcamRunning) {
                 lastVideoTime = videoRef.current?.currentTime || 0;
