@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  height: 768px;
+  height: 750px;
   width: 500px;
   margin: 0 auto;
   margin-top: 16px;
@@ -15,45 +15,53 @@
   background: linear-gradient(45deg, #69ebca, #7a42af);
 }
 
+.camera-feed-container {
+  position: relative;
+}
+
 .camera-feed {
   margin: 16px;
   border-radius: 16px;
   width: 468px;
-  height: 300px;
+  height: 263.5px;
 }
 
-.logo {
+.output_canvas {
   position: absolute;
-  width: 128px;
-  bottom: 16px;
-  left: 16px;
+  top: 0;
+  left: 0;
 }
 
-.url {
-  margin: 16px;
-  margin-bottom: 0px;
-  border-radius: 16px;
-  padding: 0 16px;
-  width: 436px;
-  height: 32px;
-  border: 2px dashed #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: aliceblue;
+.mirror-scene {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
-.dropzone {
-  margin: 16px;
-  margin-bottom: 0px;
-  border-radius: 16px;
-  padding: 0 16px;
-  width: 436px;
-  height: 32px;
-  border: 2px dashed #ccc;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: aliceblue;
+.button {
+  margin-top: 3rem;
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: 20px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  background: linear-gradient(45deg, #f3ec78, #af4261);
+  color: #38214d;
+  border: none;
+  transition: background-color 0.3s ease;
   cursor: pointer;
+}
+
+.text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #38214d;
+}
+
+video {
+  border-radius: 24px;
+  box-shadow: -5px 2px 10px rgba(0, 0, 0, 0.5);
+  background: linear-gradient(-45deg, #f3ec78, #af4261);
+  /* background: linear-gradient(45deg, #69ebca, #7a42af); */
 }

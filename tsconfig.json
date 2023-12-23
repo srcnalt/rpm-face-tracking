@@ -21,6 +21,8 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "src"
+    "src",
+    "src/utils/detectHand.ts",
+    "src/hooks/useHandDetection.tsx"
   ]
 }
